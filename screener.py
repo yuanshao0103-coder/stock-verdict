@@ -511,11 +511,6 @@ def render_stock_screener():
         if st.button("清除所有條件", use_container_width=True, key="clear_screener"):
             st.session_state.screener_selected = set()
             st.session_state.has_screened = False
-            st.session_state.screener_gen += 1
-            # 把所有 toggle 的 session_state 值設為 False（不能只刪除，瀏覽器會重新傳回舊值）
-            for k in list(st.session_state.keys()):
-                if k.startswith("tg_"):
-                    st.session_state[k] = False
             for k in ["last_screen_sig", "active_screen_conditions",
                       "last_screen_df", "last_screen_real_labels", "last_screen_mock_labels"]:
                 st.session_state.pop(k, None)
@@ -560,20 +555,21 @@ def _render_main_category(main_name: str, sub_dict: dict):
 
     st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
     for lbl in sub_dict[chosen_sub]:
-        key        = _label_to_key(lbl)
-        is_checked = key in st.session_state.screener_selected
+        key     = _label_to_key(lbl)
+        current = key in st.session_state.screener_selected
         if lbl in TECHNICAL_LABELS:
             display = f"✅ {lbl}"
         elif lbl in INSTITUTIONAL_LABELS:
             display = f"📊 {lbl}"
         else:
             display = lbl
-        gen = st.session_state.get("screener_gen", 0)
-        new_val = st.toggle(display, value=is_checked, key=f"tg_{key}_{gen}")
-        if new_val:
-            st.session_state.screener_selected.add(key)
-        else:
-            st.session_state.screener_selected.discard(key)
+        new_val = st.toggle(display, value=current)
+        if new_val != current:
+            if new_val:
+                st.session_state.screener_selected.add(key)
+            else:
+                st.session_state.screener_selected.discard(key)
+            st.rerun()
 
 
 _SCREENER_VERSION = "v2"  # 版本號，每次更新邏輯時遞增，強制清除舊快取
