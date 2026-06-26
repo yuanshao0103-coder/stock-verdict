@@ -566,13 +566,11 @@ def _render_main_category(main_name: str, sub_dict: dict):
             display = f"📊 {lbl}"
         else:
             display = lbl
-        new_val = st.toggle(display, value=current)
-        if new_val != current:
-            if new_val:
-                st.session_state.screener_selected.add(key)
-            else:
-                st.session_state.screener_selected.discard(key)
-            st.rerun()
+        new_val = st.toggle(display, value=current, key=f"tg_{key}")
+        if new_val:
+            st.session_state.screener_selected.add(key)
+        else:
+            st.session_state.screener_selected.discard(key)
 
 
 _SCREENER_VERSION = "v2"  # 版本號，每次更新邏輯時遞增，強制清除舊快取
